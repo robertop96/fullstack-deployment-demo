@@ -1,0 +1,27 @@
+{
+  "name": "knex-bookshelf-cda",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "server": "nodemon index.js",
+    "migrate": "knex migrate:latest",
+    "migrate:down": "knex migrate:down",
+    "migrate:rollback": "knex migrate:rollback",
+    "seed": "knex seed:run",
+    "start": "node index.js"
+  },
+  "author": "BrainStation",
+  "license": "ISC",
+  "dependencies": {
+    "bookshelf": "^1.1.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "knex": "^0.20.10",
+    "morgan": "^1.10.0",
+    "mysql": "^2.18.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.2"
+  }
+}
