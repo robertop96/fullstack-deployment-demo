@@ -6,21 +6,26 @@ Both projects' starter code are in `/starter` folder. Unpack `client.zip` and `s
 
 ## Testing Locally
 
-First, test out if the project is working on your local machine:
+### Setting up your local database and npm packages
+
+Make sure to check `knexfile.js` for MySQL config and update it accordingly to match your local setup. Keep in mind you will need to create a `deploy_demo` schema on your local MySQL server to be able to run migrations. Or feel free to create schema with your own name, but be sure to update the `knexfile`.
+
+To run migrations and seeds, `cd` into the `/server` folder and run `npm run migrate` and then `npm run seed`.
+Test out if the project is working on your local machine:
 
 - `cd` into both `/client` and `/server` folder and run `npm i` in each.
 
 ### Server
 
-Make sure to check `knexfile.js` for MySQL config and update it accordingly to match your local setup. Keep in mind you will need to create a `deploy_demo` schema on your local MySQL server to be able to run migrations. Or feel free to create schema with your own name, but be sure to update the `knexfile`.
-
-To run migrations and seeds, `cd` into the `/server` folder and run `npm run migrate` and then `npm run seed`.
-
-To start your Node server, run `npm run server`.
+To start your Node server, run `npm run server` inside the `/server` folder. Note the port number.
 
 ### Client
 
-Run `npm start` inside `/client` folder.
+1. Check `/client/package.json` and verify that the `proxy` property in line 37 is pointing to your correct port number on localhost.
+
+   - NOTE: If you check `/client/src/App.js`, you'll notice we're going a relative API URL and not an absolute URL. That `proxy` property is the way we can do that.
+
+2. Run `npm start` inside `/client` folder.
 
 Confirm that your application works as expected (ie: Warehouses and Inventories pages load correctly).
 
@@ -40,11 +45,12 @@ We will be deploying our server to Heroku. To start with:
 - Login into [Heroku](https://id.heroku.com/login).
 - The app you created should appear on dashboard.
 - Click on your app url.
-- Go to *Resources* Tab. Click in add on search bar and search for **JawsDB MySQL** for SQL database (you can also use **mLab MongoDB** if you are using NoSQL MongoDB for your own projects).
-- Provision free version of JawsDB Database as Service and click next. Make sure you select the free version. You will need to add Credit Card information the first time to be able to provision additional services, but it won't charge you anything.
-- Go to *Settings* tab, click on **Reveal Config Vars** button. Make sure you have a config var entry there that is pointing to JawsDB URL called `JAWSDB_URL`.
-- If not, you can manually add one. On *Resources* tab click on JAWSDB MySQL instance and it will open a new page for you with database details. Copy the connection string that is available on top of the page in format **mysql://username:password@host:port/database**. Back on *Settings* tab add a config var. `JAWSDB_URL` & above connection string will be the key value pair. Enter them in the textbox.
-- Goto Buildpacks section under *Settings* tab. Click on add buildpack and search for nodejs. Add it as your buildpack. You should see heroku/nodejs once you have successfully added it.
+- Go to _Resources_ Tab. Click in add on search bar and search for **JawsDB MySQL** for SQL database (you can also use **mLab MongoDB** if you are using NoSQL MongoDB for your own projects).
+- Provision free version of JawsDB Database as Service and click next. Make sure you select the free version, Kitefin Shared.
+  - **IMPORTANT NOTE:** You will need to add Credit Card information the first time to be able to provision additional services, but it won't charge you anything.
+- Go to _Settings_ tab, click on **Reveal Config Vars** button. Make sure you have a config var entry there that is pointing to JawsDB URL called `JAWSDB_URL`.
+- If not, you can manually add one. On _Resources_ tab click on JAWSDB MySQL instance and it will open a new page for you with database details. Copy the connection string that is available on top of the page in format **mysql://username:password@host:port/database**. Back on _Settings_ tab add a config var. `JAWSDB_URL` & above connection string will be the key value pair. Enter them in the textbox.
+- Goto Buildpacks section under _Settings_ tab. Click on add buildpack and search for nodejs. Add it as your buildpack. You should see heroku/nodejs once you have successfully added it.
 
 ### MySQL Configuration
 
@@ -108,9 +114,9 @@ app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 - If you face errors, go to your app on Heroku webpage & click on more dropdown select and select view logs. Logs will tell you what exactly went wrong. Search for help on stackoverflow.
 - By selecting a NodeJS buildpack in an earlier step, Heroku automatically knows how to install the dependencies for your application and run the app by running `npm start` script you added in an earlier step.
 - Before you open your app for the first time, we need to run migrations and seeds on your Heroku server.
-- On your app dashboard click on *More* dropdown and select *Run console* and then type `bash` and click *Run* or press Enter
+- On your app dashboard click on _More_ dropdown and select _Run console_ and then type `bash` and click _Run_ or press Enter
 - This will log you in to a root folder of where your application is deployed. Run `npm run migrate` and `npm run seed` to populate your DB data on Heroku DB.
-- Now you can close the console and open your app. Try navigating to `https://your-app-name.herokuapp.com/warehouse` to confirm that your server and DB are working correctly. 
+- Now you can close the console and open your app. Try navigating to `https://your-app-name.herokuapp.com/warehouse` to confirm that your server and DB are working correctly.
 - To re-deploy any changes to your server you would just repeat the process of committing your changes and pushing it to Heroku by using `git push heroku master`
 
 ## Client Deployment
@@ -137,12 +143,12 @@ We will be deploying our client to Netlify. To start with:
 
 ### Connecting Netlify to our remote
 
-- In Netlify dashboard click on *New site from Git* button.
+- In Netlify dashboard click on _New site from Git_ button.
 - Select GitHub to connect your account for Continuous Deployment.
-- If you don't see your new repo in a list you can click on *Configure the Netlify app on GitHub.* and in *Repository Access* section select the repository you want deployed, or select *All repositories* to have Netlify access all your repos (don't worry, they will not be automatically deployed).
-- Back on the *Create a new site* interface click on the repo you want to deploy
+- If you don't see your new repo in a list you can click on _Configure the Netlify app on GitHub._ and in _Repository Access_ section select the repository you want deployed, or select _All repositories_ to have Netlify access all your repos (don't worry, they will not be automatically deployed).
+- Back on the _Create a new site_ interface click on the repo you want to deploy
 - Netlify will automatically recognize that this is a React application and set the sensible defaults, that you don't need to change.
-- Click on *Show advanced* button and then *New variable*, and add a `REACT_APP_API_URL` variable with a value of `https://your-app-name.herokuapp.com`. You can see in your client `App.js` that this variable will automatically get set from environment variable and point to the right API_URL both on local and in production.
-- Click on *Deploy Site*.
-- You can view the progress of deployment by clicking *Deploying your site* link.
+- Click on _Show advanced_ button and then _New variable_, and add a `REACT_APP_API_URL` variable with a value of `https://your-app-name.herokuapp.com`. You can see in your client `App.js` that this variable will automatically get set from environment variable and point to the right API_URL both on local and in production.
+- Click on _Deploy Site_.
+- You can view the progress of deployment by clicking _Deploying your site_ link.
 - To re-deploy any changes to your client you would just repeat the process of committing your changes and pushing it to GitHub by using `git push` and Netlify will automatically pick up the changes and re-deploy your application.

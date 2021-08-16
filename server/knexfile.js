@@ -6,13 +6,13 @@ module.exports = {
     connection: {
       host: "127.0.0.1",
       user: "root",
-      password: "rootroot",
+      password: "november17",
       database: "deploy_demo",
-      charset: "utf8"
-    }
+      charset: "utf8",
+    },
   },
   production: {
     client: "mysql",
-    connection: process.env.JAWSDB_URL
-  }
+    connection: process.env.JAWSDB_URL,
+  },
 };

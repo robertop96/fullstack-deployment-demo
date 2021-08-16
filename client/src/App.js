@@ -6,22 +6,20 @@ import Inventory from "./Inventory";
 import "bulma/css/bulma.css";
 import axios from "axios";
 
-const API_URL = process.env.REACT_APP_API_URL;
-
 class App extends Component {
   state = {
     warehouses: [],
-    inventories: []
+    inventories: [],
   };
 
   componentDidMount() {
-    const getWarehouses = axios.get(`${API_URL}/warehouse`);
-    const getInventories = axios.get(`${API_URL}/inventory`);
-    
+    const getWarehouses = axios.get(`/api/v1/warehouse`);
+    const getInventories = axios.get(`/api/v1/inventory`);
+
     axios.all([getWarehouses, getInventories]).then((responses) => {
       this.setState({
         warehouses: responses[0].data,
-        inventories: responses[1].data
+        inventories: responses[1].data,
       });
     });
   }
@@ -33,13 +31,13 @@ class App extends Component {
           <Redirect from="/" to="/warehouse" exact />
           <Route
             path="/warehouse"
-            render={props => (
+            render={(props) => (
               <Warehouse warehouses={this.state.warehouses} {...props} />
             )}
           />
           <Route
             path="/inventory"
-            render={props => (
+            render={(props) => (
               <Inventory inventories={this.state.inventories} {...props} />
             )}
           />
