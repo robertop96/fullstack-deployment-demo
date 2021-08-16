@@ -1,0 +1,14 @@
+{
+  "name": "fullstack-deployment-demo",
+  "version": "1.0.0",
+  "description": "In this demo we will be deploying a full stack application. We will deploy our client (React code) and server (Express server) codebases separately, and connect them for production environment.",
+  "main": "index.js",
+  "scripts": {
+    "start": "npm start --prefix server",
+    "heroku-postbuild": "NPM_CONFIG_PRODUCTION=false npm install --prefix client && npm install--prefix server && npm run build --prefix client"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "homepage": "https://github.com/robertop96/fullstack-deployment-demo#readme"
+}
