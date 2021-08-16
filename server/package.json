@@ -8,8 +8,7 @@
     "migrate": "knex migrate:latest",
     "migrate:down": "knex migrate:down",
     "migrate:rollback": "knex migrate:rollback",
-    "seed": "knex seed:run",
-    "start": "node index.js"
+    "seed": "knex seed:run"
   },
   "author": "BrainStation",
   "license": "ISC",
@@ -18,7 +17,6 @@
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "knex": "^0.20.10",
-    "morgan": "^1.10.0",
     "mysql": "^2.18.1"
   },
   "devDependencies": {

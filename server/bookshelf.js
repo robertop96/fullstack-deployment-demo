@@ -1,7 +1,4 @@
-const knexConfig =
-  process.env.NODE_ENV === "production"
-    ? require("./knexfile").production
-    : require("./knexfile").development;
+const knexConfig = require("./knexfile");
 const knex = require("knex")(knexConfig);
 const bookshelf = require("bookshelf")(knex);
 
