@@ -11,6 +11,7 @@ Both projects' starter code are in `/starter` folder. Unpack `client.zip` and `s
 Make sure to check `knexfile.js` for MySQL config and update it accordingly to match your local setup. Keep in mind you will need to create a `deploy_demo` schema on your local MySQL server to be able to run migrations. Or feel free to create schema with your own name, but be sure to update the `knexfile`.
 
 To run migrations and seeds, `cd` into the `/server` folder and run `npm run migrate` and then `npm run seed`.
+
 Test out if the project is working on your local machine:
 
 - `cd` into both `/client` and `/server` folder and run `npm i` in each.
@@ -57,7 +58,7 @@ We will be deploying our server to Heroku. To start with:
 - In your `/server` folder open config file with datababase connections. For Knex/Bookshelf it will be **knexfile.js**
 - Add your production database connection (Heroku JawsDB) to your JSON:
 
-```
+```js
 module.exports = {
   development: {
     client: "mysql",
@@ -66,22 +67,23 @@ module.exports = {
       user: "root",
       password: "rootroot",
       database: "deploy_demo",
-      charset: "utf8"
-    }
+      charset: "utf8",
+    },
   },
   production: {
     client: "mysql",
-    connection: process.env.JAWSDB_URL
-  }
+    connection: process.env.JAWSDB_URL,
+  },
 };
 ```
 
 Update your `bookshelf.js` file to conditionally set the right Knex config for the environment:
 
-```
-const knexConfig = process.env.NODE_ENV === "production"
-  ? require("./knexfile").production
-  : require("./knexfile").development;
+```js
+const knexConfig =
+  process.env.NODE_ENV === "production"
+    ? require("./knexfile").production
+    : require("./knexfile").development;
 ```
 
 ### Logging Middleware
@@ -89,22 +91,57 @@ const knexConfig = process.env.NODE_ENV === "production"
 - Install `morgan` logger middleware by running `npm i morgan`
 - Configure morgan for dev and production (add this to `server/index.js` after `cors` middleware):
 
-```
+```js
 const morgan = require('morgan');
 ...
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 ```
 
-### Creating a start script
+### Tell Heroku that certain paths are related to the React app
 
-- In `package.json` add a new script that will start the production server:
+- We need to tell Heroku that one particular folder will have static assets -- the React app that was generated at `/client/build/index.html`. Inside `/server/index.js`, add the following:
 
-```
-"scripts: {
-  ...,
-  "start": "node index.js"
+```js
+const path = require("path");
+...
+if (process.env.NODE_ENV === "production") {
+  // Serve any static files
+  app.use(express.static(path.resolve(__dirname, "..", "client", "build")));
 }
 ```
+
+- Ordering does matter here. If you have any routes that will need to be authenticated, the middleware to set the static paths need to be BEFORE setting the authenticated route middleware.
+
+- You'll also need to add this at the END of your routes, before the `app.listen()`:
+
+```js
+if (process.env.NODE_ENV === "production") {
+  // Handle React routing, return all requests to React app
+  app.get("*", (request, response) => {
+    response.sendFile(
+      path.resolve(__dirname, "..", "client", "build", "index.html")
+    );
+  });
+}
+```
+
+- In the above code, we've said: "we've already routed you to the right places if you were trying to hit an API endpoint. If you've given me something else, I'm assuming this is part of the React App, and we'll load that so React Router can do its thing."
+  - That's also why we were especially careful that API endpoints started with `/api/v1`.
+
+### Creating a start script in the root directory
+
+- In the root directory, create a new `package.json` file using `npm init -y`. From here, add two new scripts that will start the production server:
+
+```js
+  "scripts": {
+    "start": "npm start --prefix server",
+    "heroku-postbuild": "NPM_CONFIG_PRODUCTION=false npm install --prefix client && npm install --prefix server && npm run build --prefix client"
+  },
+```
+
+- An explanation of what's going on:
+  - `start`: Running this at our root directory, will run `npm start --prefix server`: "Run `npm start`, but run that command at `/server/package.json`."
+  - `heroku-postbuild`: We're taking advantage of the fact Heroku will run `npm run heroku-postbuild` _automatically_ after building out the production server. `NPM_CONFIG_PRODUCTION=false` tells heroku to [explicitly ignore `devDependencies`](https://devcenter.heroku.com/articles/nodejs-support#only-installing-dependencies), then run `npm install` in the `/client` directory, then `npm install` in the `/server` directory, then `npm run build` in the client directory to [create a production build](https://create-react-app.dev/docs/production-build/) on your React app.
 
 ### Deploying to Heroku
 
@@ -113,42 +150,13 @@ app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 - You will the see deployment log in your Terminal, it will take a minute or so, after which you should get a success message saying something like "Released vX".
 - If you face errors, go to your app on Heroku webpage & click on more dropdown select and select view logs. Logs will tell you what exactly went wrong. Search for help on stackoverflow.
 - By selecting a NodeJS buildpack in an earlier step, Heroku automatically knows how to install the dependencies for your application and run the app by running `npm start` script you added in an earlier step.
-- Before you open your app for the first time, we need to run migrations and seeds on your Heroku server.
+- If you tried to open your heroku app, the React app _should_ run, but it'll time out calling the API. Why? Because we connected we pointed our database to the correct URL, but _we haven't created a database yet!_
+
+#### Migrating and seeding your production DB
+
+Before you open your app for the first time, we need to run migrations and seeds on your Heroku server.
+
 - On your app dashboard click on _More_ dropdown and select _Run console_ and then type `bash` and click _Run_ or press Enter
-- This will log you in to a root folder of where your application is deployed. Run `npm run migrate` and `npm run seed` to populate your DB data on Heroku DB.
+- This will log you in to a root folder of where your application is deployed. Run `cd server`, then `npm run migrate` and `npm run seed` to populate your DB data on Heroku DB.
 - Now you can close the console and open your app. Try navigating to `https://your-app-name.herokuapp.com/warehouse` to confirm that your server and DB are working correctly.
-- To re-deploy any changes to your server you would just repeat the process of committing your changes and pushing it to Heroku by using `git push heroku master`
-
-## Client Deployment
-
-We will be deploying our client to Netlify. To start with:
-
-- Create a [Netlify](https://app.netlify.com/signup) account.
-- Use your GitHub account to sign up as that will allow you to seamlessly deploy your repos.
-
-### Setting up routing redirect
-
-- To ensure that our React Router still works as expected, we need to set up a server redirect for Netlify to handle routing on the client-side
-- In the `/client/public` folder create a file named `_redirects` and insert this code:
-
-```
-/*    /index.html   200
-```
-
-### Pushing client code to remote
-
-- Go into your `/client` folder and `git init` a new Git repo.
-- Commit your initial client code by running `git add .` and `git commit -m "Initial client deploy"`.
-- Create a new repo on GitHub and connect your local `/client` repo to GitHub remote (following the usual GitHub new repo process).
-
-### Connecting Netlify to our remote
-
-- In Netlify dashboard click on _New site from Git_ button.
-- Select GitHub to connect your account for Continuous Deployment.
-- If you don't see your new repo in a list you can click on _Configure the Netlify app on GitHub._ and in _Repository Access_ section select the repository you want deployed, or select _All repositories_ to have Netlify access all your repos (don't worry, they will not be automatically deployed).
-- Back on the _Create a new site_ interface click on the repo you want to deploy
-- Netlify will automatically recognize that this is a React application and set the sensible defaults, that you don't need to change.
-- Click on _Show advanced_ button and then _New variable_, and add a `REACT_APP_API_URL` variable with a value of `https://your-app-name.herokuapp.com`. You can see in your client `App.js` that this variable will automatically get set from environment variable and point to the right API_URL both on local and in production.
-- Click on _Deploy Site_.
-- You can view the progress of deployment by clicking _Deploying your site_ link.
-- To re-deploy any changes to your client you would just repeat the process of committing your changes and pushing it to GitHub by using `git push` and Netlify will automatically pick up the changes and re-deploy your application.
+- To re-deploy any changes to your server, you would repeat the process of committing your changes and pushing it to Heroku by using `git push heroku master`.
