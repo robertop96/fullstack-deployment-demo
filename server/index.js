@@ -15,7 +15,8 @@ app.use(express.json());
 // Ordering DOES MATTER!
 //Boiler Plate
 if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.resolve(__dirname, '../', 'client', 'build')));
+  // Serve any static files
+  app.use(express.static(path.resolve(__dirname, '..', 'client', 'build')));
 }
 
 app.use('/api/v1/warehouse', warehouseRouter);
@@ -24,8 +25,9 @@ app.use('/api/v1/inventory', inventoryRouter);
 // None of the Above logic, IT NEEDS TO BE AT THE END.
 //Boiler Plate
 if (process.env.NODE_ENV === 'production') {
-  app.get('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, '../', 'client', 'build', 'index.html'));
+  // Handle React routing, return all requests to React app
+  app.get('*', (request, response) => {
+    response.sendFile(path.resolve(__dirname, '..', 'client', 'build', 'index.html'));
   });
 }
 
